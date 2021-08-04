@@ -2,7 +2,7 @@
 
 In this assignment you will apply everything you have learned in this module on a real world application, the Infant Incubator. The Infant Incubator is designed to provide a safe, controlled 
 space for infants to live while their vital organs develop. Unlike a simple bassinet, an incubator provides an environment that can be adjusted to provide the ideal temperature as well as the perfect amount 
-of oxygen, humidity, and light. This paticular Infant Incubator is set to release on 18th August(Deadline of the Project). The developers of this project would like you, the Security Engineer, to ensure the product satisify US Government's security regulations for medical devices before the release date. As a Security Engineer, you are required **"Make sure we satisfiy US Government Regulations"**. The company has given you the options of accomplishing this by either implementing Vulnerability Patching or creating a Risk Analysis Report.
+of oxygen, humidity, and light. This paticular Infant Incubator is set to release on **15th August**(Deadline of the Project). The developers of this project would like you, the Security Engineer, to ensure the product satisify US Government's security regulations for medical devices before the release date. As a Security Engineer, you are required **"Make sure we satisfiy US Government Regulations"**. The company has given you the options of accomplishing this by either implementing Vulnerability Patching or creating a Risk Analysis Report.
 
 **Note: You are allowed to do this project individually or with another Security Engineer**
 
@@ -78,7 +78,7 @@ AUTH_TOKEN;SET_DEGK
 
 **What to Submit**
 
-On NYU Classes, submit a link to your GitHub repository.
+On NYU Brightspace, submit a link to your GitHub repository.
 
 The repository should contain:
 - Your testcases for Part1
@@ -97,7 +97,7 @@ Pre-Market Considerations for Medical Device Cybersecurity - http://www.imdrf.or
 
 **What to Submit**
 
-On NYU Classes, submit your detailed risk analysis report.
+On NYU Brightspace, submit your detailed risk analysis report.
 
 
 ## Infant Incubator Model Explained
