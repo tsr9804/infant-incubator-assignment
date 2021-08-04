@@ -81,13 +81,16 @@ AUTH_TOKEN;SET_DEGK
 On NYU Brightspace, submit a link to your GitHub repository.
 
 The repository should contain:
-- Your testcases for Part1
-- Updated code with your vulnerability patches. Please indicate which vulnerability you are fixing in the code.
-- A Vulnerability.txt file that contains a short description on the testcases and attacks.
-
+ - Testcases (40)
+    - Minimum 4 Testcases that works and are real vulnerabilites. (10 for each)
+ - Vulnerabilies (40)
+    - Minimum 4 Vulnerabilies that works. (10 for each)
+    Note: 2 different vulnerability could have the same fix.
+ - Vulnerabilies.txt (20)
+    - 20 marks for description of the vulnerabilies, testcases and patches.
 
 ## Option 2 - Risk Analysis Report
-As a Security Engineer, write a detailed Risk Analysis Report for the Infant Incubator application. This report should contain details on the vulnerabilities and how they do not satisify the US Government Regulations(Refer to resources provide below). To identify this vulnerabilies you are encouraged to use tools you have learned in this course such as Threat Modelling and Risk Assesment.
+As a Security Engineer, write a detailed Risk Analysis Report for the Infant Incubator application. This report should contain details on the vulnerabilities and how they do not satisify the US Government Regulations(Refer to resources provide below). To identify this vulnerabilies you are encouraged to use tools you have learned in this course such as Threat Modelling and Risk Assesment. In the real world, Security Engineers are not given alot of details about the architecture or details on the program so they often have to make assumptions to find attack vectors and threats. 
 
 Resources:
 
@@ -98,6 +101,12 @@ Pre-Market Considerations for Medical Device Cybersecurity - http://www.imdrf.or
 **What to Submit**
 
 On NYU Brightspace, submit your detailed risk analysis report.
+
+Risk Analysis Report Format:
+- Background (Architecture) (20)
+- Identify Assets (20)
+- Threat Modelling/Risk Analysis (30)
+- Apply Security Reviews (How do you mitigate the threats) (30)
 
 
 ## Infant Incubator Model Explained
