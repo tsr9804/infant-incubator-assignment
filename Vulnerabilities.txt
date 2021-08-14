@@ -1,0 +1,173 @@
+#1 Authentication Bypass
+
+There is a vulnerability in the code which allows a user to send commands
+and receive responses without first being authenticated. In order to exploit
+this vulnerability a user can pass a commanded formatted like so:
+
+AUTH ;GET_TEMP
+
+Since 'AUTH' is in the open_cmds list, the program will think the user is
+attempting to authenticate and try to process the command. However, adding in
+the semicolon tricks the program in to splitting the command in to two commands
+during the processing phase. It will then loop through and process the GET_TEMP
+command without having the user be authenticated.
+
+The test for this vulnerability sends the crafted packet mentioned above to the
+network server. If the authentication was working properly, this packet should
+receive a response of either 'Bad Command', 'Authorize First', or no response at
+all. However, since the semicolon is added, the response received will be the
+valid temperature response which is processed before the user has been
+authenticated.
+
+This issue is resolved by implementing client authentication using TLS which
+removes the need to have complicated logical control flows related to the
+authentication and authorization process. TLS can provide identification,
+authentication and confidentiality for both the client and server. In HTTPS
+connections, it is generally the server who authenticates and proves its
+identity to client. However, TLS can also provide authentication and
+identification for the client as well. On lines 24-28, the TLS context is
+established and the line:
+
+self.context.verify_mode = ssl.CERT_REQUIRED
+
+will require that the client attempting to create a TLS connection with the
+server will have to provide a valid certificate to identify themselves and
+authenticate with the server. Therefore, the authentication and identification
+process no longer needs to be done using password authentication. Also the need
+for tokens is removed since the user sets up a TLS connection once and uses that
+secure authenticated connection for further commands.
+
+
+#2 Improper Temperature Display
+
+There is a bug in the SimpleClient class in SampleNetworkServer.py which causes
+the infant and incubator temperature to be displayed improperly if a user
+changes the temperature from kelvin to celsius or fahrenheit. In the
+SampleNetwork Server class, the getTemperature method will first check what the
+degree type is set to and then based on that will either return the degree
+in kelvin or make the necessary conversion. However, when the SimpleClient class
+calls getTemperature to get the temperature to display, it also subtracts 273 to
+make the conversion from kelvin to celsius. If the user sets the degree to
+celsius, both the getTemperature method and the SimpleClient will subtract 273
+and the temperature displayed will be 273 degrees lower then the actual
+temperature.
+
+This bug can become a vulnerability if a malicious actor can gain
+access to the network server and change the degree to celsius causing the
+temperature display to be much lower than expected. If this happens, someone who
+is unaware of the degree change could potentially raise the incubator
+temperature thinking that it is too low when in reality the temperature being
+displayed is incorrect. This could have disastrous consequences for the infant
+if the incubator temperature gets too high.
+
+In order to write a test for this vulnerability I created a method called
+simulate_client_temp_display which subtracts an additional 273 from the
+temperature returned from the network server. In the test, I set the degree to
+celsius and then call GET_TEMP and call the simulate_client_temp_display on the
+returned temperature. This will simulate what the displayed temperature will be
+and in this case the temperature is below -200 which is much lower than it
+should be.
+
+The fix occurs on lines 128 and 136 where I remove the additional subtraction of
+237 from the SimpleClient class. I also modified the y axis on the graph on line
+106 to display a wider range of temperatures so the the the lines will not go
+outside of the graph if the degree is set to kelvin or fahrenheit.
+
+
+#3 Password Usage
+
+There are multiple related vulnerabilities that exist in the program which have
+to do with password usage. The first is that the password is hard-coded in
+to the source. If a malicious actor can get their hands on the source code, they
+will have full access to the server functionality. Additionally it will be hard
+to remediate this vulnerability since you have to go in and change the source
+code to prevent the attacker from being able to authenticate to the server.
+Second, the password is un-hashed and un-salted. If an attacker were able to
+gain access to the password, they would not have to do any further work to be
+able to gain access to the server. Hashing and salting passwords is essential in
+creating an extra layer of defense for user passwords. Third, the same password
+is used across multiple devices. Both the infant network thermometer and the
+incubator network thermometer use the same hard-coded password. If an an
+attacker were to gain access to the hard-coded password, they would be able to
+access both the incubator and the infant thermometer.
+
+The test for this vulnerability shows that both the infant network thermometer
+and the incubator network thermometer both are using the same hard-coded
+password. The same password is used to authenticate to both thermometers and
+each connection receives a valid token which shows that the same password worked
+for both connections.
+
+The fix for this is the same for vulnerability #1. Since using TLS for both
+client and server authentication removes the need for user passwords, the
+insecure password usage can be removed completely. Both the client and server
+each have their own public and private keys and these are used for both client
+and server identification and authorization. Additionally the, network
+thermometer class has been modified to receive an input parameter,
+client_certs, which will be the client certificates that the server trusts for
+identification and authentication. This means that the infant thermometer and
+the incubator thermometer can each have their own list of trusted clients
+instead of sharing the same trusted clients across devices.
+
+On lines 151-153 and lines 158-160, the infant and incubator network
+thermometers are each initialized with the CLIENT_CERT variable which is
+an example client certificate generated for testing purposes. On line 27, the
+code:
+
+self.context.load_verify_locations(cafile=client_certs)
+
+will set the passed in CLIENT_CERT as a trusted client certificate. In this case
+the same client cert is used for both the infant and incubator thermometer,
+however, the modifications made to SmartNetworkThermometer class allows for
+different trusted clients to be passed to the infant and incubator network
+thermometer instances.
+
+#4 Unencrypted Communications
+
+The file, unencrypted.pcapng, is a packet capture file which captured packets
+being sent and received for the incubator simulator. On lines 13 and 14 the
+captured UDP packets show that the communication being sent and received are
+sent unencrypted over the wire. The packets contain both the password and the
+received authentication token which allows full access to the network
+thermometer. If an attacker were able to set up a man in the middle attack, they
+would be able to collect the packets sent over the wire and see the password and
+token which are sent in plaintext.
+
+The test for unencrypted communications demonstrates that the communication is
+unencrypted by first authenticating to the network thermometer and calling
+GET_TEMP to receive a temperature. Valid conversion of the response to a float
+value before any type of decryption process shows that the communication was
+sent unencrypted. Since the protocol being used is UDP, we know that there is no
+encryption happening at the transport layer. Additionally, there is no
+encryption happening at any lower network layers as well. This means that that
+if no encryption or decryption work is being done at the application layer,
+there is no encryption being applied to the network communication. The included
+unencrypted.pcapng file further shows the communications being sent
+over the wire are unencrypted.
+
+The fix for this is to implement encryption at either the application or
+transport layer. By implementing TLS, communications become encrypted at the
+transport layer. the attached file, tls_encrypted.pcapng, shows the TLS
+handshake process happening during communications between a client and server
+running the network thermometer. This packet capture file was generated by
+running the test_for_valid_tls method in TestCases.py, which creates a TLS
+connection with the server using a valid client certificate and then calls the
+GET_TEMP method. In the tls_encrypted.pcapng, the identification and
+authorization process happens during the handshake process and the further
+communications sent after authentication are encrypted.
+
+#5 Incubator Class Bug
+
+This was a bug that I noticed in the Incubator class in infinc.py. In the method
+addInfant on line 242, 245, and 246 the variables being updated are not the
+class variables but instead the method variables that only exist within the
+scope of the method. This means that the addInfant method is actually not
+properly updating volume, mass, and energy class variables. This is a dangerous
+bug that could lead to improper energy calculations which could cause the
+simulator to raise or lower the temperature to unsafe levels for the infant. By
+updating the variables modified to be the actual class variables, this bug is
+fixed.
+
+
+
+
+

@@ -239,11 +239,11 @@ class Incubator :
         self.infant = newInfant
 
         #First, lets calculate the displacement in volume so we can update energy
-        airVolume = self.volume - self.infant.volume
+        self.volume = self.volume - self.infant.volume
 
         #now update the energy content based on the current temperature
-        airMass = Incubator.DENSITY * airVolume
-        energy = Incubator.SPECIFIC_HEAT * airMass * self.temperature
+        self.mass = Incubator.DENSITY * self.volume
+        self.energy = Incubator.SPECIFIC_HEAT * self.mass * self.temperature
         
     def closeIncubator(self) :
         pass #nothing to do here for the simulation
